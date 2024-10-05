@@ -22,19 +22,35 @@ public_users.post("/register", (req,res) => {
 });
 
 // Get the book list available in the shop
-public_users.get('/',function (req, res) {
-  res.send(JSON.stringify({books}, null, 4));
+public_users.get('/', function (req, res) {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(books)
+        } catch (e) {
+            reject(e)
+        }
+    }).then((data) => {
+        return res.status(200).send(JSON.stringify({books : data}, null, 4));
+    }).catch((e) => {
+        return res.status(400).send({ message: 'Something wrong'})
+    })
+
 });
 
+const waitToFindBook = (isbn) => new Promise((resolve) => {
+    const book = Object.entries(books)
+    .filter(([book_isbn]) => book_isbn === isbn)
+    .map(([book_isbn, book]) => ({ isbn : book_isbn, ...book }))
+    .at(0)
+    
+    setTimeout(() => resolve(book), 300)
+})
 // Get book details based on ISBN
-public_users.get('/isbn/:isbn',function (req, res) {
+public_users.get('/isbn/:isbn', function (req, res) {
   const user_isbn = req.params.isbn;
-  const filtered_book = Object.entries(books)
-                            .filter(([book_isbn]) => book_isbn === user_isbn)
-                            .map(([book_isbn, book]) => ({ isbn : book_isbn, ...book }))
-                            .at(0);
-  
-  res.send(filtered_book);
+  waitToFindBook(user_isbn).then((data) => {
+    res.status(200).send(data);
+  })
  });
   
 // Get book details based on author

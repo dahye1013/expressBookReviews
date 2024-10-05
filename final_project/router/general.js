@@ -33,46 +33,58 @@ public_users.get('/', function (req, res) {
         return res.status(200).send(JSON.stringify({books : data}, null, 4));
     }).catch((e) => {
         return res.status(400).send({ message: 'Something wrong'})
-    })
+    });
 
 });
 
-const waitToFindBook = (isbn) => new Promise((resolve) => {
+const waitToFindBookByIsbn = (isbn) => new Promise((resolve) => {
     const book = Object.entries(books)
     .filter(([book_isbn]) => book_isbn === isbn)
     .map(([book_isbn, book]) => ({ isbn : book_isbn, ...book }))
-    .at(0)
+    .at(0);
     
-    setTimeout(() => resolve(book), 300)
+    setTimeout(() => resolve(book), 300);
 })
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn', function (req, res) {
   const user_isbn = req.params.isbn;
-  waitToFindBook(user_isbn).then((data) => {
+  waitToFindBookByIsbn(user_isbn).then((data) => {
     res.status(200).send(data);
-  })
+  });
  });
-  
+
+ const waitToFindBookByAuthor = (author) => new Promise((resolve) => {
+    const book = Object.entries(books)
+    .filter(([_, book]) => book.author === author)
+    .map(([book_isbn, book]) => ({ isbn : book_isbn, ...book }))
+    .at(0);                          
+
+    setTimeout(() => resolve(book), 300);
+})
+
 // Get book details based on author
 public_users.get('/author/:author',function (req, res) {
-  const user_author = req.params.author;
-  const filtered_book = Object.entries(books)
-                            .filter(([_, book]) => book.author === user_author)
-                            .map(([book_isbn, book]) => ({ isbn : book_isbn, ...book }))
-                            .at(0);                          
-                            
-  res.send(filtered_book);
+  const author = req.params.author;
+  waitToFindBookByAuthor(author).then((data) => {
+    res.status(200).send(data);
+  });
 });
+
+const waitToFindBookByTitle = (title) => new Promise((resolve) => {
+    const book = Object.entries(books)
+                       .filter(([_, book]) => book.title === title)
+                       .map(([book_isbn, book]) => ({ isbn : book_isbn, ...book }))
+                       .at(0);                          
+
+    setTimeout(() => resolve(book), 300);
+})
 
 // Get all books based on title
 public_users.get('/title/:title',function (req, res) {
-    const user_title = req.params.title;
-    const filtered_book = Object.entries(books)
-                              .filter(([_, book]) => book.title === user_title)
-                              .map(([book_isbn, book]) => ({ isbn : book_isbn, ...book }))
-                              .at(0);                          
-                              
-    res.send(filtered_book);
+    const title = req.params.title;
+    waitToFindBookByTitle(title).then((data) => {
+        res.status(200).send(data);
+    });                         
 });
 
 //  Get book review
